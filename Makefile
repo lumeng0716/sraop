@@ -5,7 +5,7 @@ MK_PWD = ./
 # 头文件所在的目录
 Include += -I$(MK_PWD)include/  
 # 所有的cpp/c源文件
-SourceFile = $(shell find $(MK_PWD) -name "*.c" )
+SourceFile = $(shell find $(MK_PWD) -name "*.c" ! -name "dnss*.c")
 
 LoadLibs +=  -lc
 # 依赖文件
