@@ -7,7 +7,7 @@ Include += -I$(MK_PWD)include/
 # 所有的cpp/c源文件
 SourceFile = $(shell find $(MK_PWD) -name "*.c" )
 
-LoadLibs +=  
+LoadLibs +=  -lc
 # 依赖文件
 
 ObjectFile = $(SourceFile:%.c=%.o)
@@ -20,10 +20,10 @@ $(Target): $(ObjectFile)
 # 编译
 $(ObjectFile): %.o : %.c
 	@echo  "Begin bulid c.............."
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LoadLibs) $(Include)-c $^ -o $@ -fPIC -shared
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LoadLibs) $(Include) -c $^ -o $@ -fPIC -shared
 all: $(TARGET) install
 
 # 伪目标
 .PHONY: clean
 clean:
-	-rm -fr $(SourceFile) $(Target)
+	-rm -fr $(ObjectFile) $(Target)
