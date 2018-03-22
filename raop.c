@@ -119,10 +119,12 @@ conn_init(void *opaque, unsigned char *local, int locallen, unsigned char *remot
 	digest_generate_nonce(conn->nonce, sizeof(conn->nonce));
 
 
+/*
 	if(NULL != conn->raop->callbacks.audio_connect)
 	{
          conn->raop->callbacks.audio_connect( conn->raop->callbacks.cls,local,locallen,remote,remotelen);
 	}
+*/
 	return conn;
 }
 
@@ -444,11 +446,12 @@ conn_destroy(void *ptr)
 	free(conn->local);
 	free(conn->remote);
 	free(conn);
-
+/*
 	if(NULL != conn->raop->callbacks.audio_disconnect)
 	{  
 	     conn->raop->callbacks.audio_disconnect(conn->raop->callbacks.cls);
 	}
+	*/
 }
 
 raop_t *
