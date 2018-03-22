@@ -436,6 +436,11 @@ static void
 conn_destroy(void *ptr)
 {
 	raop_conn_t *conn = ptr;
+	
+	if(NULL != conn->raop->callbacks.audio_disconnect)
+	{  
+	     conn->raop->callbacks.audio_disconnect(conn->raop->callbacks.cls);
+	}
 
 	if (conn->raop_rtp) {
 		/* This is done in case TEARDOWN was not called */
@@ -445,10 +450,6 @@ conn_destroy(void *ptr)
 	free(conn->remote);
 	free(conn);
 
-	if(NULL != conn->raop->callbacks.audio_disconnect)
-	{  
-	     conn->raop->callbacks.audio_disconnect(conn->raop->callbacks.cls);
-	}
 	
 }
 
