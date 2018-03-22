@@ -34,8 +34,6 @@ struct raop_callbacks_s {
 	void* (*audio_init)(void *cls, int bits, int channels, int samplerate);
 	void  (*audio_process)(void *cls, void *session, const void *buffer, int buflen);
 	void  (*audio_destroy)(void *cls, void *session);
-	void  (*audio_connect)(void *cls,unsigned char * remote,int remoteSize,unsigned char *local,int localSize);
-	void  (*audio_disconnect)(void *cls);
 
 	/* Optional but recommended callback functions */
 	void  (*audio_flush)(void *cls, void *session);
@@ -44,6 +42,9 @@ struct raop_callbacks_s {
 	void  (*audio_set_coverart)(void *cls, void *session, const void *buffer, int buflen);
 	void  (*audio_remote_control_id)(void *cls, const char *dacp_id, const char *active_remote_header);
 	void  (*audio_set_progress)(void *cls, void *session, unsigned int start, unsigned int curr, unsigned int end);
+
+	void  (*audio_connect)(void *cls,unsigned char * remote,int remoteSize,unsigned char *local,int localSize);
+	void  (*audio_disconnect)(void *cls);
 };
 typedef struct raop_callbacks_s raop_callbacks_t;
 
