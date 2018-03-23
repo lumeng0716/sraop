@@ -226,6 +226,7 @@ httpd_thread(void *arg)
 		ret = select(nfds, &rfds, NULL, NULL, &tv);
 		if (ret == 0) {
 			/* Timeout happened */
+		    logger_log(httpd->logger, LOGGER_WARNING, "----timeOut");
 			continue;
 		} else if (ret == -1) {
 			/* FIXME: Error happened */
