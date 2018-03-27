@@ -389,6 +389,7 @@ raop_rtp_thread_udp(void *arg)
 		fd_set rfds;
 		struct timeval tv;
 		int nfds, ret;
+		int timeoutCount = 0;
 
 		/* Check if we are still running and process callbacks */
 		if (raop_rtp_process_events(raop_rtp, cb_data)) {
@@ -414,12 +415,21 @@ raop_rtp_thread_udp(void *arg)
 		ret = select(nfds, &rfds, NULL, NULL, &tv);
 		if (ret == 0) {
 			/* Timeout happened */
-			continue;
+		    timeoutCount++;
+			if(timeoutCount >= 400)   //2s
+			{
+			    logger_log(raop_rtp->logger, LOGGER_WARNING, "2s consecutive timeouts, quit rtp thread.");
+			    break;
+			}
+			else
+			    continue;
 		} else if (ret == -1) {
 			/* FIXME: Error happened */
 			break;
 		}
 
+        timeoutCount = 0;
+		
 		if (FD_ISSET(raop_rtp->csock, &rfds)) {
 			saddrlen = sizeof(saddr);
 			packetlen = recvfrom(raop_rtp->csock, (char *)packet, sizeof(packet), 0,
@@ -496,6 +506,7 @@ raop_rtp_thread_tcp(void *arg)
 		fd_set rfds;
 		struct timeval tv;
 		int nfds, ret;
+		int timeoutCount = 0;
 
 		/* Check if we are still running and process callbacks */
 		if (raop_rtp_process_events(raop_rtp, cb_data)) {
@@ -518,12 +529,22 @@ raop_rtp_thread_tcp(void *arg)
 		ret = select(nfds, &rfds, NULL, NULL, &tv);
 		if (ret == 0) {
 			/* Timeout happened */
-			continue;
+			timeoutCount++;
+			if(timeoutCount >= 400)   //2s
+			{
+			    logger_log(raop_rtp->logger, LOGGER_WARNING, "2s consecutive timeouts, quit rtp thread.");
+			    break;
+			}
+			else
+			    continue;
 		} else if (ret == -1) {
 			/* FIXME: Error happened */
-			logger_log(raop_rtp->logger, LOGGER_INFO, "Error in select");
+			logger_log(raop_rtp->logger, LOGGER_ERR, "Error in select");
 			break;
 		}
+
+        timeoutCount = 0;
+		
 		if (stream_fd == -1 && FD_ISSET(raop_rtp->dsock, &rfds)) {
 			struct sockaddr_storage saddr;
 			socklen_t saddrlen;
