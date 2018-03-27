@@ -448,11 +448,15 @@ raop_rtp_thread_udp(void *arg)
 		
 		if (FD_ISSET(raop_rtp->csock, &rfds)) {
 			saddrlen = sizeof(saddr);
+			logger_log(raop_rtp->logger, LOGGER_DEBUG, "1(1), csock recvfrom");
 			packetlen = recvfrom(raop_rtp->csock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
 
+            logger_log(raop_rtp->logger, LOGGER_DEBUG, "1(2), csock packetlen = %d", packetlen);
+
             if(packetlen <= 0)
                 continue;
+			
 			/* Get the destination address here, because we need the sin6_scope_id */
 			memcpy(&raop_rtp->control_saddr, &saddr, saddrlen);
 			raop_rtp->control_saddr_len = saddrlen;
@@ -468,11 +472,13 @@ raop_rtp_thread_udp(void *arg)
 				}
 			}
 		} else if (FD_ISSET(raop_rtp->tsock, &rfds)) {
-			logger_log(raop_rtp->logger, LOGGER_INFO, "Would have timing packet in queue");
+			logger_log(raop_rtp->logger, LOGGER_INFO, "2, Would have timing packet in queue");
 		} else if (FD_ISSET(raop_rtp->dsock, &rfds)) {
 			saddrlen = sizeof(saddr);
+			logger_log(raop_rtp->logger, LOGGER_DEBUG, "3(1), csock recvfrom");
 			packetlen = recvfrom(raop_rtp->dsock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
+			logger_log(raop_rtp->logger, LOGGER_DEBUG, "3(2), csock packetlen = %d", packetlen);
 			if(packetlen <= 0)
                 continue;
 			if (packetlen >= 12) {
