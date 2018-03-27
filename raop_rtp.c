@@ -196,23 +196,11 @@ raop_rtp_init_sockets(raop_rtp_t *raop_rtp, int use_ipv6, int use_udp)
 		if (csock == -1 || tsock == -1) {
 			goto sockets_cleanup;
 		}
-
-        if (setsockopt(csock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
-            goto sockets_cleanup;
-        }
-
-		if (setsockopt(tsock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
-            goto sockets_cleanup;
-        }
 	}
 	dsock = netutils_init_socket(&dport, use_ipv6, use_udp);
 	if (dsock == -1) {
 		goto sockets_cleanup;
 	}
-
-	if (setsockopt(dsock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
-        goto sockets_cleanup;
-    }
 
 	/* Listen to the data socket if using TCP */
 	if (!use_udp) {
@@ -389,6 +377,7 @@ raop_rtp_thread_udp(void *arg)
 	unsigned int packetlen;
 	struct sockaddr_storage saddr;
 	socklen_t saddrlen;
+    int timeoutCount = 0;
 
 	const ALACSpecificConfig *config;
 	void *cb_data = NULL;
@@ -405,14 +394,11 @@ raop_rtp_thread_udp(void *arg)
 		fd_set rfds;
 		struct timeval tv;
 		int nfds, ret;
-		int timeoutCount = 0;
 
-        logger_log(raop_rtp->logger, LOGGER_DEBUG, "0(1), raop_rtp_process_events");
 		/* Check if we are still running and process callbacks */
 		if (raop_rtp_process_events(raop_rtp, cb_data)) {
 			break;
 		}
-        logger_log(raop_rtp->logger, LOGGER_DEBUG, "0(2), raop_rtp_process_events");
 		/* Set timeout value to 5ms */
 		tv.tv_sec = 0;
 		tv.tv_usec = 5000;
@@ -433,9 +419,9 @@ raop_rtp_thread_udp(void *arg)
 		if (ret == 0) {
 			/* Timeout happened */
 		    timeoutCount++;
-			if(timeoutCount >= 400)   //2s
+			if(timeoutCount >= 1000)   //5s
 			{
-			    logger_log(raop_rtp->logger, LOGGER_WARNING, "2s consecutive timeouts, quit rtp thread.");
+			    logger_log(raop_rtp->logger, LOGGER_WARNING, "5s consecutive timeouts, quit rtp thread.");
 			    break;
 			}
 			else
@@ -449,15 +435,9 @@ raop_rtp_thread_udp(void *arg)
 		
 		if (FD_ISSET(raop_rtp->csock, &rfds)) {
 			saddrlen = sizeof(saddr);
-			logger_log(raop_rtp->logger, LOGGER_DEBUG, "1(1), csock recvfrom");
 			packetlen = recvfrom(raop_rtp->csock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
 
-            logger_log(raop_rtp->logger, LOGGER_DEBUG, "1(2), csock packetlen = %d", packetlen);
-
-            if(packetlen <= 0)
-                continue;
-			
 			/* Get the destination address here, because we need the sin6_scope_id */
 			memcpy(&raop_rtp->control_saddr, &saddr, saddrlen);
 			raop_rtp->control_saddr_len = saddrlen;
@@ -473,15 +453,12 @@ raop_rtp_thread_udp(void *arg)
 				}
 			}
 		} else if (FD_ISSET(raop_rtp->tsock, &rfds)) {
-			logger_log(raop_rtp->logger, LOGGER_INFO, "2, Would have timing packet in queue");
+			logger_log(raop_rtp->logger, LOGGER_INFO, "Would have timing packet in queue");
 		} else if (FD_ISSET(raop_rtp->dsock, &rfds)) {
 			saddrlen = sizeof(saddr);
-			logger_log(raop_rtp->logger, LOGGER_DEBUG, "3(1), csock recvfrom");
 			packetlen = recvfrom(raop_rtp->dsock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
-			logger_log(raop_rtp->logger, LOGGER_DEBUG, "3(2), csock packetlen = %d", packetlen);
-			if(packetlen <= 0)
-                continue;
+
 			if (packetlen >= 12) {
 				int no_resend = (raop_rtp->control_rport == 0);
 				int ret;
@@ -517,6 +494,7 @@ raop_rtp_thread_tcp(void *arg)
 	int stream_fd = -1;
 	unsigned char packet[RAOP_PACKET_LEN];
 	unsigned int packetlen = 0;
+	int timeoutCount = 0;
 
 	const ALACSpecificConfig *config;
 	void *cb_data = NULL;
@@ -533,8 +511,7 @@ raop_rtp_thread_tcp(void *arg)
 		fd_set rfds;
 		struct timeval tv;
 		int nfds, ret;
-		int timeoutCount = 0;
-
+		
 		/* Check if we are still running and process callbacks */
 		if (raop_rtp_process_events(raop_rtp, cb_data)) {
 			break;
