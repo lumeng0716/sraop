@@ -184,6 +184,10 @@ raop_rtp_init_sockets(raop_rtp_t *raop_rtp, int use_ipv6, int use_udp)
 	int csock = -1, tsock = -1, dsock = -1;
 	unsigned short cport = 0, tport = 0, dport = 0;
 
+	struct timeval timeout;
+	timeout.tv_sec = 5;  //5s
+	timeout.tv_usec = 0;
+
 	assert(raop_rtp);
 
 	if (use_udp) {
@@ -192,11 +196,23 @@ raop_rtp_init_sockets(raop_rtp_t *raop_rtp, int use_ipv6, int use_udp)
 		if (csock == -1 || tsock == -1) {
 			goto sockets_cleanup;
 		}
+
+        if (setsockopt(csock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+            goto sockets_cleanup;
+        }
+
+		if (setsockopt(tsock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+            goto sockets_cleanup;
+        }
 	}
 	dsock = netutils_init_socket(&dport, use_ipv6, use_udp);
 	if (dsock == -1) {
 		goto sockets_cleanup;
 	}
+
+	if (setsockopt(dsock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+        goto sockets_cleanup;
+    }
 
 	/* Listen to the data socket if using TCP */
 	if (!use_udp) {
@@ -435,6 +451,8 @@ raop_rtp_thread_udp(void *arg)
 			packetlen = recvfrom(raop_rtp->csock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
 
+            if(packetlen <= 0)
+                continue;
 			/* Get the destination address here, because we need the sin6_scope_id */
 			memcpy(&raop_rtp->control_saddr, &saddr, saddrlen);
 			raop_rtp->control_saddr_len = saddrlen;
@@ -455,6 +473,8 @@ raop_rtp_thread_udp(void *arg)
 			saddrlen = sizeof(saddr);
 			packetlen = recvfrom(raop_rtp->dsock, (char *)packet, sizeof(packet), 0,
 			                     (struct sockaddr *)&saddr, &saddrlen);
+			if(packetlen <= 0)
+                continue;
 			if (packetlen >= 12) {
 				int no_resend = (raop_rtp->control_rport == 0);
 				int ret;
