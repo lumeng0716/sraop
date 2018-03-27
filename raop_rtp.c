@@ -407,11 +407,12 @@ raop_rtp_thread_udp(void *arg)
 		int nfds, ret;
 		int timeoutCount = 0;
 
+        logger_log(raop_rtp->logger, LOGGER_DEBUG, "0(1), raop_rtp_process_events");
 		/* Check if we are still running and process callbacks */
 		if (raop_rtp_process_events(raop_rtp, cb_data)) {
 			break;
 		}
-
+        logger_log(raop_rtp->logger, LOGGER_DEBUG, "0(2), raop_rtp_process_events");
 		/* Set timeout value to 5ms */
 		tv.tv_sec = 0;
 		tv.tv_usec = 5000;
