@@ -488,10 +488,12 @@ raop_rtp_thread_udp(void *arg)
 
 network_disconnect_handle:
 	logger_log(raop_rtp->logger, LOGGER_INFO, "Exiting UDP RAOP thread, network disconnect, quit airplay.");
-	if(!raop_rtp->callbacks.audio_terminate)
+	/*if(!raop_rtp->callbacks.audio_terminate)
 	    raop_rtp->callbacks.audio_terminate(raop_rtp->callbacks.cls);
-	else
+	else*/
 		raop_rtp->callbacks.audio_destroy(raop_rtp->callbacks.cls, cb_data);
+
+    raop_rtp_destroy(raop_rtp);
 
 	return 0;
 	
