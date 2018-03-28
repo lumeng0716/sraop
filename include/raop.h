@@ -45,6 +45,7 @@ struct raop_callbacks_s {
 
 	void  (*audio_connect)(void *cls,unsigned char * remote,int remoteSize,unsigned char *local,int localSize);
 	void  (*audio_disconnect)(void *cls);
+	void  (*audio_terminate)(void *cls);
 };
 typedef struct raop_callbacks_s raop_callbacks_t;
 

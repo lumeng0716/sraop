@@ -419,10 +419,10 @@ raop_rtp_thread_udp(void *arg)
 		if (ret == 0) {
 			/* Timeout happened */
 		    timeoutCount++;
-			if(timeoutCount >= 1000)   //5s
+			if(timeoutCount >= 1500)   //10s
 			{
-			    logger_log(raop_rtp->logger, LOGGER_WARNING, "5s consecutive timeouts, quit rtp thread.");
-			    break;
+			    logger_log(raop_rtp->logger, LOGGER_WARNING, "7.5s consecutive timeouts, quit rtp thread.");
+			    goto network_disconnect_handle;
 			}
 			else
 			    continue;
@@ -485,6 +485,16 @@ raop_rtp_thread_udp(void *arg)
 	raop_rtp->callbacks.audio_destroy(raop_rtp->callbacks.cls, cb_data);
 
 	return 0;
+
+network_disconnect_handle:
+	logger_log(raop_rtp->logger, LOGGER_INFO, "Exiting UDP RAOP thread, network disconnect, quit airplay.");
+	if(!raop_rtp->callbacks.audio_terminate)
+	    raop_rtp->callbacks.audio_terminate(raop_rtp->callbacks.cls);
+	else
+		raop_rtp->callbacks.audio_destroy(raop_rtp->callbacks.cls, cb_data);
+
+	return 0;
+	
 }
 
 static THREAD_RETVAL
