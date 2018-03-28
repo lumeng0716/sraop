@@ -61,6 +61,8 @@ RAOP_API void raop_stop(raop_t *raop);
 
 RAOP_API void raop_destroy(raop_t *raop);
 
+RAOP_API void raop_network_broke_handle(raop_t *raop);
+
 #ifdef __cplusplus
 }
 #endif

@@ -610,3 +610,8 @@ raop_stop(raop_t *raop)
 	httpd_stop(raop->httpd);
 }
 
+void raop_network_broke_handle(raop_t *raop)
+{
+    assert(raop);
+	httpd_remove_all_connections(raop->httpd);
+}
