@@ -166,7 +166,7 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 	httpd->callbacks.conn_destroy(connection->user_data);
 
 	int flags = fcntl(connection->socket_fd, F_GETFL, 0);
-	fcntl(connection->socket_fd, F_SETFL, flags | O_NONBLOCK) < 0);
+	fcntl(connection->socket_fd, F_SETFL, flags | O_NONBLOCK);
 	
 	shutdown(connection->socket_fd, SHUT_WR);
 	closesocket(connection->socket_fd);
