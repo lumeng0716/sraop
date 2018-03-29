@@ -22,6 +22,7 @@
 #include "http_request.h"
 #include "compat.h"
 #include "logger.h"
+#include <fcntl.h>
 
 struct http_connection_s {
 	int connected;
