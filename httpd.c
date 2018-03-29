@@ -169,8 +169,9 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 	httpd->open_connections--;
 }
 
-void httpd_handle_network_broke(httpd_t *httpd)
+THREAD_RETVAL httpd_handle_network_broke(void *arg)
 {
+    httpd_t *httpd = arg;
     for (int i=0; i<httpd->max_connections; i++) {
 		http_connection_t *connection = &httpd->connections[i];
 

@@ -613,5 +613,6 @@ raop_stop(raop_t *raop)
 void raop_network_broke_handle(raop_t *raop)
 {
     assert(raop);
-    httpd_handle_network_broke(raop->httpd);
+	thread_handle_t thread;
+	THREAD_CREATE(thread, httpd_handle_network_broke, raop->httpd);
 }
