@@ -169,20 +169,6 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 	httpd->open_connections--;
 }
 
-void httpd_remove_all_connections(httpd_t *httpd)
-{
-    for (int i=0; i<httpd->max_connections; i++) {
-		http_connection_t *connection = &httpd->connections[i];
-
-		if (!connection->connected) {
-			continue;
-		}
-		logger_log(httpd->logger, LOGGER_INFO, "Removing connection for socket %d", connection->socket_fd);
-		httpd_remove_connection(httpd, connection);
-	}
-}
-
-
 static THREAD_RETVAL
 httpd_thread(void *arg)
 {

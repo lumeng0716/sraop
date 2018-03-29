@@ -39,7 +39,4 @@ void httpd_stop(httpd_t *httpd);
 
 void httpd_destroy(httpd_t *httpd);
 
-void httpd_remove_all_connections(httpd_t *httpd);
-
-
 #endif
