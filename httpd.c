@@ -139,11 +139,6 @@ httpd_accept_connection(httpd_t *httpd, int server_fd, int is_ipv6)
 		return -1;
 	}
 
-	struct linger so_linger;
-    so_linger.l_onoff = 1;
-    so_linger.l_linger = 0;
-    setsockopt(fd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
-
 	local_saddrlen = sizeof(local_saddr);
 	ret = getsockname(fd, (struct sockaddr *)&local_saddr, &local_saddrlen);
 	if (ret == -1) {
@@ -168,6 +163,10 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 		connection->request = NULL;
 	}
 	httpd->callbacks.conn_destroy(connection->user_data);
+
+	int flags = fcntl(connection->socket_fd, F_GETFL, 0);
+	fcntl(connection->socket_fd, F_SETFL, flags | O_NONBLOCK) < 0);
+	
 	shutdown(connection->socket_fd, SHUT_WR);
 	closesocket(connection->socket_fd);
 	connection->connected = 0;
