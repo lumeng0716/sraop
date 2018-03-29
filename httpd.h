@@ -40,6 +40,6 @@ void httpd_stop(httpd_t *httpd);
 
 void httpd_destroy(httpd_t *httpd);
 
-THREAD_RETVAL httpd_handle_network_broke(httpd_t *httpd);
+extern THREAD_RETVAL httpd_handle_network_broke(httpd_t *httpd);
 
 #endif
