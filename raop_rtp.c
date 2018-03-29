@@ -493,8 +493,6 @@ network_disconnect_handle:
 	else
 		raop_rtp->callbacks.audio_destroy(raop_rtp->callbacks.cls, cb_data);
 
-    raop_rtp_destroy(raop_rtp);
-
 	return 0;
 	
 }

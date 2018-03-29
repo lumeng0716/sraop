@@ -163,10 +163,29 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 		connection->request = NULL;
 	}
 	httpd->callbacks.conn_destroy(connection->user_data);
-	//shutdown(connection->socket_fd, SHUT_WR);
-	//closesocket(connection->socket_fd);
+	shutdown(connection->socket_fd, SHUT_WR);
+	closesocket(connection->socket_fd);
 	connection->connected = 0;
 	httpd->open_connections--;
+}
+
+void httpd_handle_network_broke(httpd_t *httpd)
+{
+    for (i=0; i<httpd->max_connections; i++) {
+		http_connection_t *connection = &httpd->connections[i];
+
+		if (!connection->connected) {
+			continue;
+		}
+		logger_log(httpd->logger, LOGGER_INFO, "Removing connection for socket %d", connection->socket_fd);
+		if (connection->request) {
+    		http_request_destroy(connection->request);
+    		connection->request = NULL;
+    	}
+    	httpd->callbacks.conn_destroy(connection->user_data);
+    	connection->connected = 0;
+    	httpd->open_connections--;
+	}
 }
 
 static THREAD_RETVAL
