@@ -139,6 +139,11 @@ httpd_accept_connection(httpd_t *httpd, int server_fd, int is_ipv6)
 		return -1;
 	}
 
+	struct linger so_linger;
+    so_linger.l_onoff = 1;
+    so_linger.l_linger = 0;
+    setsockopt(fd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+
 	local_saddrlen = sizeof(local_saddr);
 	ret = getsockname(fd, (struct sockaddr *)&local_saddr, &local_saddrlen);
 	if (ret == -1) {
