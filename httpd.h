@@ -18,6 +18,7 @@
 #include "logger.h"
 #include "http_request.h"
 #include "http_response.h"
+#include "threads.h"
 
 typedef struct httpd_s httpd_t;
 
