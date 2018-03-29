@@ -171,7 +171,7 @@ httpd_remove_connection(httpd_t *httpd, http_connection_t *connection)
 
 void httpd_handle_network_broke(httpd_t *httpd)
 {
-    for (i=0; i<httpd->max_connections; i++) {
+    for (int i=0; i<httpd->max_connections; i++) {
 		http_connection_t *connection = &httpd->connections[i];
 
 		if (!connection->connected) {
