@@ -185,6 +185,8 @@ THREAD_RETVAL httpd_handle_network_broke(void *arg)
     	}
 		logger_log(httpd->logger, LOGGER_INFO, "httpd_handle_network_broke 1");
     	httpd->callbacks.conn_destroy(connection->user_data);
+		shutdown(connection->socket_fd, SHUT_WR);
+	    closesocket(connection->socket_fd);
     	connection->connected = 0;
     	httpd->open_connections--;
 		logger_log(httpd->logger, LOGGER_INFO, "httpd_handle_network_broke 2");
@@ -206,17 +208,12 @@ httpd_thread(void *arg)
 		int nfds=0;
 		int ret;
 
-        logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 1 %d");
-
 		MUTEX_LOCK(httpd->run_mutex);
 		if (!httpd->running) {
 			MUTEX_UNLOCK(httpd->run_mutex);
 			break;
 		}
 		MUTEX_UNLOCK(httpd->run_mutex);
-
-        logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 2， httpd->open_connections = %d, httpd->max_connections = %d", 
-			httpd->open_connections, httpd->max_connections);
 
 		/* Set timeout value to 5ms */
 		tv.tv_sec = 1;
@@ -225,10 +222,7 @@ httpd_thread(void *arg)
 		/* Get the correct nfds value and set rfds */
 		FD_ZERO(&rfds);
 		if (httpd->open_connections < httpd->max_connections) {
-            logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 3");
-		
 			if (httpd->server_fd4 != -1) {
-				 logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 4");
 				FD_SET(httpd->server_fd4, &rfds);
 				if (nfds <= httpd->server_fd4) {
 					nfds = httpd->server_fd4+1;
@@ -242,16 +236,13 @@ httpd_thread(void *arg)
 			}
 		}
 		for (i=0; i<httpd->max_connections; i++) {
-			 logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 5");
 			int socket_fd;
 			if (!httpd->connections[i].connected) {
-				 logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 6");
 				continue;
 			}
 			socket_fd = httpd->connections[i].socket_fd;
 			FD_SET(socket_fd, &rfds);
 			if (nfds <= socket_fd) {
-				 logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 7");
 				nfds = socket_fd+1;
 			}
 		}
@@ -275,7 +266,6 @@ httpd_thread(void *arg)
 			} else if (ret == 0) {
 				continue;
 			}
-			logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 8");
 		}
 		if (httpd->open_connections < httpd->max_connections &&
 		    httpd->server_fd6 != -1 && FD_ISSET(httpd->server_fd6, &rfds)) {
@@ -289,15 +279,12 @@ httpd_thread(void *arg)
 		for (i=0; i<httpd->max_connections; i++) {
 			http_connection_t *connection = &httpd->connections[i];
 
-            logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 9");
 			if (!connection->connected) {
 				continue;
 			}
 			if (!FD_ISSET(connection->socket_fd, &rfds)) {
 				continue;
 			}
-
-			logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 10");
 
 			/* If not in the middle of request, allocate one */
 			if (!connection->request) {
@@ -328,8 +315,6 @@ httpd_thread(void *arg)
 				httpd->callbacks.conn_request(connection->user_data, connection->request, &response);
 				http_request_destroy(connection->request);
 				connection->request = NULL;
-
-               logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 11");
 
 				if (response) {
 					const char *data;
@@ -376,7 +361,6 @@ httpd_thread(void *arg)
 		httpd_remove_connection(httpd, connection);
 	}
 
-    logger_log(httpd->logger, LOGGER_INFO, "httpd_thread 12");
 
 	/* Close server sockets since they are not used any more */
 	if (httpd->server_fd4 != -1) {
